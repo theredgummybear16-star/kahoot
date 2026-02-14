@@ -1,0 +1,1 @@
+"""Optional extension cogs package."""
