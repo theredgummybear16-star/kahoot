@@ -118,6 +118,16 @@ The Kahoot client contains a **best-effort educational implementation** of Bayeu
 Because Kahoot's protocol is private and can change, these assumptions may break.
 The code includes comments explaining these assumptions and keeps behavior conservative.
 
+## Continuous Integration (GitHub Actions)
+
+This repository includes a GitHub Actions workflow at `.github/workflows/ci.yml` that runs on every push and pull request.
+
+It validates the project by:
+
+- Installing dependencies from `requirements.txt`
+- Compiling all Python modules (`python -m compileall`)
+- Running a lightweight import smoke test
+
 ## Docker (Optional)
 
 Create `.env` first, then run:

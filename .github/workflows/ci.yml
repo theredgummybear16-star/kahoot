@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: kahoot-discord-controller/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r kahoot-discord-controller/requirements.txt
+
+      - name: Validate source compiles
+        run: python -m compileall kahoot-discord-controller
+
+      - name: Smoke-test imports
+        run: |
+          python - <<'PY'
+          from discord_bot.bot import KahootDiscordBot
+          from discord_bot.config import Settings
+          from kahoot_client.client import KahootClient, fetch_game_info
+          from kahoot_client.models import GameInfo, UserPreferences
+
+          assert KahootDiscordBot is not None
+          assert Settings is not None
+          assert KahootClient is not None
+          assert fetch_game_info is not None
+          assert GameInfo is not None
+          assert UserPreferences is not None
+          print("Imports OK")
+          PY
+        working-directory: kahoot-discord-controller
