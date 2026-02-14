@@ -141,15 +141,14 @@ A deploy workflow can map these secrets directly into environment variables, so 
 
 The included `run-bot.yml` uses Python 3.12 and runs up to 360 minutes per manual trigger (`workflow_dispatch`).
 
-## Continuous Integration (GitHub Actions)
+## GitHub Actions Runner
 
-This repository includes a GitHub Actions workflow at `.github/workflows/ci.yml` that runs on every push and pull request.
+Both workflows (`.github/workflows/ci.yml` and `.github/workflows/run-bot.yml`) are manual (`workflow_dispatch`) bot runners.
 
-It validates the project by:
-
-- Installing dependencies from `requirements.txt`
-- Compiling all Python modules (`python -m compileall`)
-- Running a lightweight import smoke test
+- Python runtime is fixed to **3.12**
+- They load `DISCORD_TOKEN` and `DISCORD_SERVER` from GitHub Secrets
+- They install dependencies and then run `python main.py`
+- They do **not** run a build/test matrix
 
 ## Docker (Optional)
 
