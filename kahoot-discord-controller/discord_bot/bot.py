@@ -47,6 +47,7 @@ class KahootDiscordBot(commands.Bot):
         self.guild_id = guild_id
         self.preferences: dict[int, UserPreferences] = defaultdict(UserPreferences)
         self.active_clients: dict[int, list[ManagedClient]] = defaultdict(list)
+        self._guild_synced = False
         self.tree.error(self.on_app_command_error)
 
     def _is_allowed_guild(self, interaction: discord.Interaction) -> bool:
@@ -79,6 +80,14 @@ class KahootDiscordBot(commands.Bot):
             embed.add_field(name="Questions", value=str(game.question_count), inline=True)
             embed.set_footer(text="Educational use only. Respect Kahoot Terms of Service.")
             await interaction.followup.send(embed=embed, ephemeral=True)
+
+        @self.tree.command(name="ping", description="Check whether the bot is responding.", guild=guild)
+        @app_commands.guild_only()
+        async def ping(interaction: discord.Interaction) -> None:
+            if not self._is_allowed_guild(interaction):
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+            await interaction.response.send_message("Pong ✅ Bot is online and slash commands are working.", ephemeral=True)
 
         @self.tree.command(name="join", description="Join a Kahoot game with one educational bot.", guild=guild)
         @app_commands.guild_only()
@@ -206,10 +215,19 @@ class KahootDiscordBot(commands.Bot):
             )
 
         synced = await self.tree.sync(guild=guild)
+        self._guild_synced = True
         LOGGER.info("Synced %s command(s) for guild %s.", len(synced), self.guild_id)
 
     async def on_ready(self) -> None:
         """Initialize required channels when the bot is online."""
+        if not self._guild_synced:
+            try:
+                synced = await self.tree.sync(guild=discord.Object(id=self.guild_id))
+                self._guild_synced = True
+                LOGGER.info("Synced %s command(s) for guild %s during on_ready.", len(synced), self.guild_id)
+            except discord.HTTPException as exc:
+                LOGGER.error("Command sync failed for guild %s: %s", self.guild_id, exc)
+
         try:
             await self.ensure_guild_resources()
         except discord.Forbidden:
@@ -220,6 +238,11 @@ class KahootDiscordBot(commands.Bot):
             )
         except discord.HTTPException as exc:
             LOGGER.error("Failed to ensure guild resources: %s", exc)
+
+        guild = self.get_guild(self.guild_id)
+        if guild is None:
+            known_guilds = ", ".join(f"{g.name}({g.id})" for g in self.guilds) or "none"
+            LOGGER.error("Configured DISCORD_SERVER=%s not found in connected guilds: %s", self.guild_id, known_guilds)
         LOGGER.info("Logged in as %s", self.user)
 
     async def ensure_guild_resources(self) -> None:

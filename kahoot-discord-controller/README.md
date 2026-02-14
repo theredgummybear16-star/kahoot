@@ -100,6 +100,8 @@ python main.py
   - Returns title, host, and question count when available.
 - `/config default_name:StudyBot answer_delay:2.2`
   - Sets defaults for future `/join` calls.
+- `/ping`
+  - Quick health check to confirm slash commands are responding.
 - `/join 123456 bot_name:NotebookBot`
   - Joins one game for your user.
 - `/status`
@@ -158,6 +160,8 @@ docker compose up --build
 
 ## Troubleshooting
 
-- If slash commands do not appear, verify `DISCORD_SERVER` is the correct numeric guild ID and reinvite the bot with `applications.commands` scope.
+- If slash commands do not appear, verify `DISCORD_SERVER` is the correct numeric guild ID (Developer Mode -> Copy Server ID), then reinvite the bot with both `bot` and `applications.commands` scopes.
 - If channels are not created, grant the bot **Manage Channels** permission in the target server.
 - If the bot exits on startup, ensure both `DISCORD_TOKEN` and `DISCORD_SERVER` are present in environment variables or secrets.
+
+- Check bot logs for: `Configured DISCORD_SERVER=... not found in connected guilds` and update your env/secrets to a server where the bot is actually added.
