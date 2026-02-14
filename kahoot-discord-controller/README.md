@@ -154,3 +154,10 @@ docker compose up --build
 - Move commands into cogs.
 - Add structured metrics/logging.
 - Add safer simulation toggles (e.g., join-only mode, no answering).
+
+
+## Troubleshooting
+
+- If slash commands do not appear, verify `DISCORD_SERVER` is the correct numeric guild ID and reinvite the bot with `applications.commands` scope.
+- If channels are not created, grant the bot **Manage Channels** permission in the target server.
+- If the bot exits on startup, ensure both `DISCORD_TOKEN` and `DISCORD_SERVER` are present in environment variables or secrets.
