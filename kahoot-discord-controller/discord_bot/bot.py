@@ -16,6 +16,9 @@ from kahoot_client.client import KahootClient, KahootClientError, fetch_game_inf
 from kahoot_client.models import ActiveBotInfo, UserPreferences
 
 LOGGER = logging.getLogger(__name__)
+CONTROL_CATEGORY_NAME = "kahoot-controller"
+COMMAND_CHANNEL_NAME = "kahoot-commands"
+STATUS_CHANNEL_NAME = "kahoot-status"
 
 
 @dataclass(slots=True)
@@ -30,11 +33,18 @@ class ManagedClient:
 class KahootDiscordBot(commands.Bot):
     """Discord bot using slash commands to control one Kahoot client per user."""
 
-    def __init__(self, *, cooldown_seconds: int = 5, max_bots_per_user: int = 1) -> None:
+    def __init__(
+        self,
+        *,
+        cooldown_seconds: int = 5,
+        max_bots_per_user: int = 1,
+        guild_id: int,
+    ) -> None:
         intents = discord.Intents.default()
         super().__init__(command_prefix="!", intents=intents)
         self.cooldown_seconds = cooldown_seconds
         self.max_bots_per_user = max_bots_per_user
+        self.guild_id = guild_id
         self.preferences: dict[int, UserPreferences] = defaultdict(UserPreferences)
         self.active_clients: dict[int, list[ManagedClient]] = defaultdict(list)
         self.tree.error(self.on_app_command_error)
@@ -46,6 +56,10 @@ class KahootDiscordBot(commands.Bot):
         @app_commands.guild_only()
         @app_commands.checks.cooldown(1, self.cooldown_seconds)
         async def get_pin(interaction: discord.Interaction, game_pin: int) -> None:
+            if interaction.guild_id != self.guild_id:
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+
             await interaction.response.defer(thinking=True, ephemeral=True)
             try:
                 game = await asyncio.to_thread(fetch_game_info, game_pin)
@@ -69,6 +83,10 @@ class KahootDiscordBot(commands.Bot):
             game_pin: int,
             bot_name: str | None = None,
         ) -> None:
+            if interaction.guild_id != self.guild_id:
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+
             await interaction.response.defer(thinking=True, ephemeral=True)
             user_id = interaction.user.id
             user_bots = self.active_clients[user_id]
@@ -108,6 +126,10 @@ class KahootDiscordBot(commands.Bot):
         @app_commands.guild_only()
         @app_commands.checks.cooldown(1, self.cooldown_seconds)
         async def leave(interaction: discord.Interaction, all: bool = False) -> None:
+            if interaction.guild_id != self.guild_id:
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+
             await interaction.response.defer(thinking=True, ephemeral=True)
             user_id = interaction.user.id
             clients = self.active_clients.get(user_id, [])
@@ -131,6 +153,10 @@ class KahootDiscordBot(commands.Bot):
         @app_commands.guild_only()
         @app_commands.checks.cooldown(1, self.cooldown_seconds)
         async def status(interaction: discord.Interaction) -> None:
+            if interaction.guild_id != self.guild_id:
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+
             user_id = interaction.user.id
             entries = self.active_clients.get(user_id, [])
             if not entries:
@@ -157,6 +183,10 @@ class KahootDiscordBot(commands.Bot):
             default_name: str | None = None,
             answer_delay: app_commands.Range[float, 0.3, 10.0] | None = None,
         ) -> None:
+            if interaction.guild_id != self.guild_id:
+                await interaction.response.send_message("This bot is restricted to its configured server.", ephemeral=True)
+                return
+
             user_id = interaction.user.id
             prefs = self.preferences[user_id]
 
@@ -170,8 +200,32 @@ class KahootDiscordBot(commands.Bot):
                 ephemeral=True,
             )
 
-        await self.tree.sync()
-        LOGGER.info("Slash commands synced.")
+        guild = discord.Object(id=self.guild_id)
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
+        LOGGER.info("Slash commands synced for guild %s.", self.guild_id)
+
+    async def on_ready(self) -> None:
+        """Initialize required channels when the bot is online."""
+        await self.ensure_guild_resources()
+        LOGGER.info("Logged in as %s", self.user)
+
+    async def ensure_guild_resources(self) -> None:
+        """Create category/channels used by the bot if they do not exist."""
+        guild = self.get_guild(self.guild_id)
+        if guild is None:
+            LOGGER.warning("Configured guild %s is not visible to the bot.", self.guild_id)
+            return
+
+        category = discord.utils.get(guild.categories, name=CONTROL_CATEGORY_NAME)
+        if category is None:
+            category = await guild.create_category(CONTROL_CATEGORY_NAME, reason="Initialize Kahoot controller resources")
+
+        existing_text_channels = {channel.name for channel in category.text_channels}
+        if COMMAND_CHANNEL_NAME not in existing_text_channels:
+            await guild.create_text_channel(COMMAND_CHANNEL_NAME, category=category)
+        if STATUS_CHANNEL_NAME not in existing_text_channels:
+            await guild.create_text_channel(STATUS_CHANNEL_NAME, category=category)
 
     async def on_app_command_error(
         self,

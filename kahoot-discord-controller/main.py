@@ -23,6 +23,7 @@ def main() -> None:
     bot = KahootDiscordBot(
         cooldown_seconds=settings.command_cooldown_seconds,
         max_bots_per_user=settings.max_bots_per_user,
+        guild_id=settings.discord_server,
     )
     bot.run(settings.discord_token)
 

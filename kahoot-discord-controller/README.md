@@ -49,6 +49,8 @@ kahoot-discord-controller/
 - In-memory user session management.
 - Max bots per user (default: 1).
 - Global command cooldown.
+- Guild scoping with `DISCORD_SERVER` so commands only work in one server.
+- Auto-provisioning of a `kahoot-controller` category with command/status channels.
 - Graceful disconnect handling and simple reconnect loop.
 - Random delayed answer behavior to simulate a participant.
 
@@ -78,9 +80,10 @@ kahoot-discord-controller/
    ```bash
    cp .env.example .env
    ```
-5. Edit `.env` and set your real token:
+5. Edit `.env` and set your real values:
    ```env
    DISCORD_TOKEN=your_real_discord_bot_token
+   DISCORD_SERVER=your_discord_server_id
    COMMAND_COOLDOWN_SECONDS=5
    MAX_BOTS_PER_USER=1
    ```
@@ -117,6 +120,15 @@ The Kahoot client contains a **best-effort educational implementation** of Bayeu
 
 Because Kahoot's protocol is private and can change, these assumptions may break.
 The code includes comments explaining these assumptions and keeps behavior conservative.
+
+## GitHub Actions Secrets
+
+To run this safely in GitHub Actions, add repository secrets:
+
+- `DISCORD_TOKEN` = bot token
+- `DISCORD_SERVER` = numeric server (guild) ID
+
+A deploy workflow can map these secrets directly into environment variables, so no token is hardcoded in the repository.
 
 ## Continuous Integration (GitHub Actions)
 
