@@ -56,7 +56,7 @@ kahoot-discord-controller/
 
 ## Prerequisites
 
-- Python 3.9+
+- Python 3.12+
 - A Discord application token with bot permissions.
 - Network access to Discord and Kahoot endpoints.
 
@@ -123,6 +123,13 @@ The Kahoot client contains a **best-effort educational implementation** of Bayeu
 Because Kahoot's protocol is private and can change, these assumptions may break.
 The code includes comments explaining these assumptions and keeps behavior conservative.
 
+## Always-on hosting note
+
+GitHub Actions is useful for tests or temporary runs, but it is **not a permanent host** for a Discord bot.
+A workflow run will stop after the configured timeout, and then the bot will appear offline in Discord.
+
+For always-online behavior, run the bot on a persistent host (VPS, Railway, Render background worker, Docker on your own server, etc.).
+
 ## GitHub Actions Secrets
 
 To run this safely in GitHub Actions, add repository secrets:
@@ -131,6 +138,8 @@ To run this safely in GitHub Actions, add repository secrets:
 - `DISCORD_SERVER` = numeric server (guild) ID
 
 A deploy workflow can map these secrets directly into environment variables, so no token is hardcoded in the repository.
+
+The included `run-bot.yml` uses Python 3.12 and runs up to 360 minutes per manual trigger (`workflow_dispatch`).
 
 ## Continuous Integration (GitHub Actions)
 
