@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kahoot Admin Control Panel</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Admin Console</p>
+          <h1>Kahoot Control Panel</h1>
+          <p class="subtitle">Moderate live games, review answer activity, and manage username safety rules.</p>
+        </div>
+
+        <section class="card compact stat-card">
+          <span>Active games</span>
+          <strong id="active-games-count">3</strong>
+        </section>
+
+        <section class="card compact stat-card">
+          <span>Players online</span>
+          <strong id="players-online-count">154</strong>
+        </section>
+
+        <section class="card compact stat-card">
+          <span>Flagged usernames blocked</span>
+          <strong id="blocked-count">12</strong>
+        </section>
+      </aside>
+
+      <main class="main-content">
+        <section class="card hero">
+          <div>
+            <p class="eyebrow">Live operations</p>
+            <h2>Host interventions and player controls</h2>
+            <p>
+              Quickly skip questions, adjust scores, watch answer distributions, and run moderation tools without leaving the admin panel.
+            </p>
+          </div>
+          <div class="pill-row">
+            <span class="pill">Force Skip</span>
+            <span class="pill">Manual Score Adjust</span>
+            <span class="pill">Live Spy Mode</span>
+            <span class="pill">Word Filter</span>
+            <span class="pill">Identity Theft</span>
+            <span class="pill">Fake Result</span>
+          </div>
+        </section>
+
+        <section class="grid two-column">
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Advanced game control</p>
+                <h3>Force skip</h3>
+              </div>
+              <span class="badge warning">Immediate</span>
+            </div>
+
+            <label for="skip-game-select">Game lobby</label>
+            <select id="skip-game-select"></select>
+
+            <div class="info-box" id="skip-game-status"></div>
+            <button id="force-skip-button" class="button danger">Force skip current question</button>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Score moderation</p>
+                <h3>Manual score adjust</h3>
+              </div>
+              <span class="badge">Audit logged</span>
+            </div>
+
+            <label for="score-game-select">Game lobby</label>
+            <select id="score-game-select"></select>
+
+            <label for="score-player-select">Player</label>
+            <select id="score-player-select"></select>
+
+            <label for="score-delta-input">Point delta</label>
+            <input id="score-delta-input" type="number" value="500" step="100" />
+
+            <label for="score-reason-input">Reason</label>
+            <input id="score-reason-input" type="text" maxlength="80" placeholder="Bonus for classroom participation" />
+
+            <button id="score-adjust-button" class="button">Apply score adjustment</button>
+          </article>
+        </section>
+
+        <section class="grid two-column">
+          <article class="card spy-panel">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Monitoring & intelligence</p>
+                <h3>Live spy mode</h3>
+              </div>
+              <span class="badge success">Read only</span>
+            </div>
+
+            <label for="spy-game-select">Observe game</label>
+            <select id="spy-game-select"></select>
+
+            <div class="spy-question">
+              <h4 id="spy-question-title"></h4>
+              <p id="spy-question-meta"></p>
+            </div>
+
+            <div id="spy-answer-list" class="answer-list"></div>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Management & security</p>
+                <h3>Word filter</h3>
+              </div>
+              <span class="badge">Join gate</span>
+            </div>
+
+            <label for="word-filter-input">Blocked word or phrase</label>
+            <div class="inline-form">
+              <input id="word-filter-input" type="text" placeholder="Enter a banned username fragment" />
+              <button id="word-filter-add" class="button">Add</button>
+            </div>
+
+            <div id="word-filter-list" class="chip-list"></div>
+          </article>
+        </section>
+
+        <section class="grid two-column">
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Creative moderation</p>
+                <h3>Identity theft</h3>
+              </div>
+              <span class="badge warning">Visible instantly</span>
+            </div>
+
+            <label for="rename-game-select">Game lobby</label>
+            <select id="rename-game-select"></select>
+
+            <label for="rename-player-select">Player</label>
+            <select id="rename-player-select"></select>
+
+            <label for="rename-input">Forced display name</label>
+            <input id="rename-input" type="text" maxlength="32" placeholder="I Love Bananas" />
+
+            <button id="rename-button" class="button">Force rename player</button>
+          </article>
+
+          <article class="card">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Creative moderation</p>
+                <h3>Fake result</h3>
+              </div>
+              <span class="badge danger">Psych-out</span>
+            </div>
+
+            <label for="fake-game-select">Game lobby</label>
+            <select id="fake-game-select"></select>
+
+            <label for="fake-player-select">Player</label>
+            <select id="fake-player-select"></select>
+
+            <label for="fake-message-input">Result overlay message</label>
+            <input id="fake-message-input" type="text" maxlength="60" value="WRONG — try harder next round!" />
+
+            <button id="fake-result-button" class="button danger">Send fake wrong screen</button>
+          </article>
+        </section>
+
+        <section class="card">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">System activity</p>
+              <h3>Action log</h3>
+            </div>
+            <button id="clear-log-button" class="button ghost">Clear log</button>
+          </div>
+
+          <ul id="activity-log" class="activity-log"></ul>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
